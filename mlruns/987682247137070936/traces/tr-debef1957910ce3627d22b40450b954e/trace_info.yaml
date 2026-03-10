@@ -1,0 +1,15 @@
+execution_duration_ms: 1550
+request_preview: '{"message": "I''m new to MLflow. How do I get started with experiment
+  tracking?", "turn": 1}'
+request_time: '2026-03-10T04:52:23.022Z'
+response_preview: '{"response": "Welcome to MLflow! Here''s your quickstart:\n\n1.
+  Install: `pip install mlflow`\n2. Start the UI: `mlflow server --port 5000`\n3.
+  In your code:\n```python\nimport mlflow\nwith mlflow.start_run():\n    mlflow.log_param(''learning_rate'',
+  0.01)\n    mlflow.log_metric(''accuracy'', 0.95)\n```\nOpen http://localhost:5000
+  to see your experiments!"}'
+state: OK
+trace_id: tr-debef1957910ce3627d22b40450b954e
+trace_location:
+  mlflow_experiment:
+    experiment_id: '987682247137070936'
+  type: MLFLOW_EXPERIMENT

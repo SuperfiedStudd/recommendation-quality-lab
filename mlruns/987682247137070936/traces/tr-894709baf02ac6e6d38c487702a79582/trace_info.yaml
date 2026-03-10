@@ -1,0 +1,12 @@
+execution_duration_ms: 914
+request_preview: '{"message": "I think it''s a retrieval issue - sometimes it finds
+  irrelevant documents.", "turn": 2}'
+request_time: '2026-03-07T08:00:45.422Z'
+response_preview: '{"response": "You should look at the retrieval scores and maybe
+  adjust your embedding model or chunk size."}'
+state: OK
+trace_id: tr-894709baf02ac6e6d38c487702a79582
+trace_location:
+  mlflow_experiment:
+    experiment_id: '987682247137070936'
+  type: MLFLOW_EXPERIMENT

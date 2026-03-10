@@ -1,0 +1,16 @@
+creation_timestamp: 1773177089266
+current_stage: None
+deployment_job_state: null
+description: Initial customer support prompt
+last_updated_timestamp: 1773177089266
+model_id: null
+name: mlflow-demo.prompts.customer-support
+run_id: null
+run_link: null
+source: dummy-source
+status: READY
+status_message: null
+storage_location: dummy-source
+user_id: null
+version: 1
+workspace: default

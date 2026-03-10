@@ -1,0 +1,12 @@
+aliases:
+  audience-targeting: '3'
+  baseline: '1'
+  length-constraint: '2'
+  production: '4'
+creation_timestamp: 1773177090510
+deployment_job_id: null
+deployment_job_state: null
+description: Initial summarization prompt
+last_updated_timestamp: 1773177092283
+name: mlflow-demo.prompts.document-summarizer
+workspace: default

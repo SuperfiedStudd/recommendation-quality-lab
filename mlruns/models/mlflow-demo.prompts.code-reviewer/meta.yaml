@@ -1,0 +1,12 @@
+aliases:
+  baseline: '1'
+  production: '4'
+  review-categories: '2'
+  severity-levels: '3'
+creation_timestamp: 1773177092315
+deployment_job_id: null
+deployment_job_state: null
+description: Initial code review prompt
+last_updated_timestamp: 1773177093925
+name: mlflow-demo.prompts.code-reviewer
+workspace: default

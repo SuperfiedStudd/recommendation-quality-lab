@@ -1,0 +1,14 @@
+execution_duration_ms: 1260
+request_preview: '{"query": "What is MLflow Tracing and how does it help with LLM
+  observability?"}'
+request_time: '2026-03-08T01:35:38.538Z'
+response_preview: '{"response": "MLflow Tracing provides comprehensive observability
+  for LLM applications by capturing the execution flow as hierarchical spans. Each
+  span records inputs, outputs, latency, and metadata, making it easy to debug and
+  optimize your AI systems."}'
+state: OK
+trace_id: tr-e1342d639fc6cecf7d62604ca95d1a5e
+trace_location:
+  mlflow_experiment:
+    experiment_id: '987682247137070936'
+  type: MLFLOW_EXPERIMENT

@@ -1,0 +1,13 @@
+execution_duration_ms: 122
+request_preview: '{"query": "Calculate the compound interest on $10,000 at 5% annual
+  rate for 10 years"}'
+request_time: '2026-03-08T12:08:03.386Z'
+response_preview: '{"response": "With annual compounding, $10,000 at 5% interest for
+  10 years grows to $16,288.95. The formula is: Principal x (1 + rate)^years = 10000
+  x 1.05^10. You''ll earn $6,288.95 in interest over the period."}'
+state: OK
+trace_id: tr-531cd46645884e9594a305434644a87c
+trace_location:
+  mlflow_experiment:
+    experiment_id: '987682247137070936'
+  type: MLFLOW_EXPERIMENT

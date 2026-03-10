@@ -1,0 +1,18 @@
+execution_duration_ms: 1353
+request_preview: '{"query": "Summarize the Q3 2024 earnings report for investors.",
+  "template_variables": {"audience": "investor", "max_words": "150", "document": "Q3
+  2024 Financial Results: Total revenue reached $2.3 billion, representing a 15% increase
+  year-over-year. Net income was $450 million, up 23% from Q3 2023. Earnings per share
+  of $1.82 exceeded analyst estimates of $1.70. Cloud services segment grew 32%...",
+  "query": "Summarize the Q3 2024 earnings report for investors."}}'
+request_time: '2026-03-08T16:23:28.785Z'
+response_preview: '{"response": "**Q3 2024 Earnings Summary for Investors**\n\n- Revenue:
+  $2.3B (+15% YoY)\n- Net Income: $450M (+23% YoY)\n- EPS: $1.82 (beat estimates by
+  $0.12)\n\nKey Drivers: Cloud services growth (32%), cost optimization savings ($45M)\nOutlook:
+  Full-year guidance raised to $9.1B revenue"}'
+state: OK
+trace_id: tr-9715b56ea2fa9132abea01741a28417d
+trace_location:
+  mlflow_experiment:
+    experiment_id: '987682247137070936'
+  type: MLFLOW_EXPERIMENT

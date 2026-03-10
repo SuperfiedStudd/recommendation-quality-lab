@@ -174,30 +174,47 @@ source .venv/bin/activate    # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Quick Reproduction
-Run the entire pipeline end-to-end:
+### Full Pipeline Run (Recommended)
+This command safely executes all analysis notebooks, extracts evaluation metrics, generates clean tradeoff plots (PNGs), and logs the experiment to a local MLflow file store.
 ```bash
 python run_all.py
 ```
-This executes all 5 notebooks in order via `jupyter nbconvert` and writes results to `outputs/`.
+*Outputs will be saved neatly in `outputs/run_YYYYMMDD_HHMMSS/`.*
 
-### Manual Notebook Order
-If you prefer to run notebooks interactively:
+### Interactive Filter Bubble Simulator
+A lightweight visual tool to demonstrate how algorithm choice (e.g. Popularity vs. Diversity) alters user exposure over time.
+```bash
+streamlit run app/filter_bubble_simulator.py
+```
 
-1. `notebooks/01_pipeline_check.ipynb` — Builds `outputs/pipeline_sample.csv` from raw KuaiRand-1K data
-2. `notebooks/02_validation_checks.ipynb` — Validates data integrity, label logic, and feature distributions
-3. `notebooks/03_baseline_strategy_comparison.ipynb` — Phase 1: ranks observed-only session items
-4. `notebooks/04_candidate_pool_strategy_comparison.ipynb` — Phase 2: ranks 100-item multi-source pools
-5. `notebooks/05_ml_baseline_and_advanced_eval.ipynb` — Phase 3: temporal split, SVD baseline, advanced metrics
+### View Experiment Tracking
+To compare metrics and generated plots across different strategy combinations, launch the local MLflow UI:
+```bash
+mlflow ui
+```
+*Then open `http://localhost:5000` in your browser.*
 
-### Data Requirement
-Place KuaiRand-1K CSVs in `data/` before running. The dataset is available at [kuairand.com](https://kuairand.com/).
+---
+
+## The Online Recommendation Path (Why Offline Matters)
+
+Evaluating recommendation algorithms offline using historical logs is necessary to narrow down promising strategies, but offline evaluation is structurally insufficient for proving online success.
+
+### How this maps to Production Serving
+In a real-world system, these offline candidate pools and heuristics operate within a live feedback loop:
+1. **Candidate Retrieval**: High-speed recall databases (e.g. ANN, Vector DBs) retrieve ~1000 candidates based on recent user clicks.
+2. **First-Stage Ranking**: Lightweight models filter this down to ~100 items (similar to the pool size evaluated in this lab).
+3. **Heavy Ranking & Reranking**: The strategies tested here (e.g., Diversity-aware penalties) are applied at this final stage to construct the visible UI feed.
+4. **Event Logging & Feedback Loop**: Client interactions (click, watch time, ignore) are logged. This data directly updates the user's profile and trains the collaborative filtering model (like our SVD baseline) for the next session.
+
+### Avoiding the Filter Bubble Trap
+If a **Popularity-only** strategy is deployed online, the user's event log immediately fills with top-tier, homogenous items. When the model retrains on this data, it becomes overly confident in a very narrow feature space, accelerating a "filter bubble". By establishing robust offline metrics (Novelty, Serendipity, Coverage) and testing **Diversity-Aware** rerankers, we mitigate the risk of deploying a strategy that maximizes Day 1 engagement but collapses long-term discovery.
 
 ---
 
 ## Limitations
 
-- **No deployment or serving.** This is an offline evaluation framework, not a production recommender.
+- **No deployment or serving.** This is an evaluation framework, not a production real-time recommender (though it includes an interactive Streamlit simulation).
 - **Dataset constraints.** KuaiRand-1K lacks rich semantic features (embeddings, audio/visual). Diversity and repetition metrics rely on `tag` and `author_id` metadata.
 - **Missing impression rank.** The dataset does not include the position at which items were displayed, so traditional NDCG/MRR metrics are not applicable.
 - **SVD, not ALS.** The original plan used the `implicit` library (ALS), but it requires C++ build tools. The working implementation uses scipy's truncated SVD as a dependency-free fallback.
@@ -205,5 +222,5 @@ Place KuaiRand-1K CSVs in `data/` before running. The dataset is available at [k
 ## Future Work
 
 - Integrate content embeddings (if available) into the diversity and repetition penalty functions.
-- Experiment with a two-stage scoring model where SVD scores are blended with heuristic signals rather than used standalone.
+- Experiment with a two-stage scoring model where SVD latent factors are blended with heuristic signals rather than used standalone.
 - Add session-level novelty tracking to measure whether diversity gains persist across consecutive sessions for the same user.

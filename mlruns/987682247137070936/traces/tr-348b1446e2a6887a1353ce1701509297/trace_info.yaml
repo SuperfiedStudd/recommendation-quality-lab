@@ -1,0 +1,17 @@
+execution_duration_ms: 1683
+request_preview: '{"message": "How do I compare different retrieval configurations
+  systematically?", "turn": 3}'
+request_time: '2026-03-10T13:28:16.421Z'
+response_preview: '{"response": "Use MLflow''s evaluation framework for systematic
+  comparison:\n\n```python\nimport mlflow\nfrom mlflow.metrics.genai import relevance,
+  faithfulness\n\n# Create evaluation dataset\neval_data = pd.DataFrame({\n    ''inputs'':
+  questions,\n    ''ground_truth'': expected_answers\n})\n\n# Run evaluation\nresults
+  = mlflow.evaluate(\n    model=your_rag_pipeline,\n    data=eval_data,\n    scorers=[relevance(),
+  faithfulness()]\n)\n```\n\nCompare runs in the MLflow UI''s comparison view to see
+  which config wins!"}'
+state: OK
+trace_id: tr-348b1446e2a6887a1353ce1701509297
+trace_location:
+  mlflow_experiment:
+    experiment_id: '987682247137070936'
+  type: MLFLOW_EXPERIMENT

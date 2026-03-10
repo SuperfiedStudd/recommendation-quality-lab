@@ -1,0 +1,1 @@
+{"response": "Use mlflow.evaluate() by passing your model/data and a list of scorers like relevance() or faithfulness(). It returns per-row scores and aggregate metrics, all automatically logged to your MLflow experiment for easy comparison."}

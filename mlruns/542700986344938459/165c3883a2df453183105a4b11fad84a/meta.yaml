@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Code/recommendation-quality-lab/mlruns/542700986344938459/165c3883a2df453183105a4b11fad84a/artifacts
+end_time: 1773177262929
+entry_point_name: ''
+experiment_id: '542700986344938459'
+lifecycle_stage: active
+run_id: 165c3883a2df453183105a4b11fad84a
+run_name: pipeline_run_20260310_135555
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1773176156779
+status: 3
+tags: []
+user_id: Jasjyot Singh

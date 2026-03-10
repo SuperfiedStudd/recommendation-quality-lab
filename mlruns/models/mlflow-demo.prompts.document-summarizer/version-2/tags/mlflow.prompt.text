@@ -1,0 +1,3 @@
+Summarize the following document in {{max_words}} words or less:
+
+{{document}}

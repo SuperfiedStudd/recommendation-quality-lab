@@ -1,0 +1,16 @@
+creation_timestamp: 1773177089963
+current_stage: None
+deployment_job_state: null
+description: Convert to chat format with detailed guidelines
+last_updated_timestamp: 1773177089963
+model_id: null
+name: mlflow-demo.prompts.customer-support
+run_id: null
+run_link: null
+source: dummy-source
+status: READY
+status_message: null
+storage_location: dummy-source
+user_id: null
+version: 4
+workspace: default

@@ -1,0 +1,23 @@
+execution_duration_ms: 1427
+request_preview: '{"query": "Review this JavaScript async function for API calls.",
+  "template_variables": {"language": "javascript", "code": "async function fetchUserData(userId)
+  {\n  const apiKey = ''sk-1234567890'';\n  const user = await fetch(`/api/users/${userId}`);\n  const
+  posts = await fetch(`/api/users/${userId}/posts`);\n  return { user: user.json(),
+  posts: posts.json() };\n}", "query": "Review this JavaScript async function for
+  API calls.", "focus_areas": "security, performance, readability", "severity_levels":
+  "critical, warning, suggestion"}}'
+request_time: '2026-03-10T03:16:54.519Z'
+response_preview: '{"response": "## Code Review: fetchUserData async function\n\n###
+  Issues Found\n1. **[Critical] Security - Line 4**: API key exposed in client-side
+  code\n   - Fix: Move to environment variable or backend proxy\n\n2. **[Critical]
+  Bug - Line 7**: Missing try/catch around await\n   - Fix: Wrap in try/catch or add
+  .catch() handler\n\n3. **[Major] Performance - Lines 8-10**: Sequential awaits should
+  be parallel\n   - Fix: `const [user, posts] = await Promise.all([...]);`\n\n4. **[Minor]
+  Style**: Inconsistent error message format\n\n### Positive Aspects\n- Good use of
+  async/await syntax\n- Clear function naming"}'
+state: OK
+trace_id: tr-beb7a4d2d5684db95519bce61b0e757c
+trace_location:
+  mlflow_experiment:
+    experiment_id: '987682247137070936'
+  type: MLFLOW_EXPERIMENT

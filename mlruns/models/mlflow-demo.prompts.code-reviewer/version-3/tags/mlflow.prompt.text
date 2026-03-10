@@ -1,0 +1,9 @@
+Review the following {{language}} code. For each issue found, specify:
+- Severity: Critical, Major, Minor, or Suggestion
+- Category: Bug, Performance, Security, Style, or Maintainability
+- Line number (if applicable)
+- Recommended fix
+
+```{{language}}
+{{code}}
+```

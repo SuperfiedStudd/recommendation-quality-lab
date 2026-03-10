@@ -1,0 +1,34 @@
+# configs/default_config.yaml
+# All paths are relative to the project root.
+
+experiment_name: "discovery_rank_experiment"
+random_seed: 42
+
+data:
+  # The processed pipeline sample is built by notebook 01
+  # and written to outputs/. Raw KuaiRand CSVs live in data/.
+  pipeline_sample: "outputs/pipeline_sample.csv"
+  raw_dir: "data"
+  log_files:
+    - "log_standard_4_08_to_4_21_1k.csv"
+    - "log_standard_4_22_to_5_08_1k.csv"
+
+output:
+  base_dir: "outputs/runs"
+
+evaluation:
+  split_percentile: 0.8
+  svd_factors: 50
+  pool_size: 100
+  test_sessions_sample: 500
+  top_k: 20
+
+strategies:
+  - "popularity_based"
+  - "freshness_boosted"
+  - "diversity_aware_rerank"
+  - "svd_baseline"
+
+simulator:
+  num_sessions: 20
+  recs_per_session: 5

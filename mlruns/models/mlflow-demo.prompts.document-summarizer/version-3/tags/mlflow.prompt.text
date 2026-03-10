@@ -1,0 +1,4 @@
+Summarize the following document for a {{audience}} audience. Keep the summary under {{max_words}} words.
+
+Document:
+{{document}}

@@ -1,0 +1,12 @@
+execution_duration_ms: 1629
+request_preview: '{"message": "My RAG application is giving inconsistent answers.
+  How can I debug it?", "turn": 1}'
+request_time: '2026-03-07T03:52:17.146Z'
+response_preview: '{"response": "You should look at your prompts and retrieved documents
+  to see what''s happening. MLflow has some tools for this."}'
+state: OK
+trace_id: tr-ba53c828cd88746e19492605fe692ad6
+trace_location:
+  mlflow_experiment:
+    experiment_id: '987682247137070936'
+  type: MLFLOW_EXPERIMENT

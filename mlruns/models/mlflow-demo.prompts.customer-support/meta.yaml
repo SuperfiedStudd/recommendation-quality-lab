@@ -1,0 +1,12 @@
+aliases:
+  baseline: '1'
+  production: '4'
+  tone-guidance: '2'
+  with-context: '3'
+creation_timestamp: 1773177089235
+deployment_job_id: null
+deployment_job_state: null
+description: Initial customer support prompt
+last_updated_timestamp: 1773177090470
+name: mlflow-demo.prompts.customer-support
+workspace: default

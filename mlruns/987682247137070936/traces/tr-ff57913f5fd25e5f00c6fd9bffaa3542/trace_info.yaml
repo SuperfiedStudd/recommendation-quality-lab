@@ -1,0 +1,17 @@
+execution_duration_ms: 980
+request_preview: '{"message": "Yes, I want to deploy to Kubernetes. What''s the process?",
+  "turn": 2}'
+request_time: '2026-03-11T10:58:12.979Z'
+response_preview: '{"response": "Here''s the K8s deployment workflow:\n\n1. **Build
+  a Docker image**:\n```bash\nmlflow models build-docker \\\n  -m models:/my-classifier/1
+  \\\n  -n my-classifier:v1\n```\n\n2. **Push to your registry**:\n```bash\ndocker
+  push your-registry/my-classifier:v1\n```\n\n3. **Deploy to K8s** (example deployment.yaml):\n```yaml\napiVersion:
+  apps/v1\nkind: Deployment\nspec:\n  containers:\n  - name: model\n    image: your-registry/my-classifier:v1\n    ports:\n    -
+  containerPort: 8080\n```\n\nThe container exposes a `/invocations` endpoint compatible
+  with MLflow''s format."}'
+state: OK
+trace_id: tr-ff57913f5fd25e5f00c6fd9bffaa3542
+trace_location:
+  mlflow_experiment:
+    experiment_id: '987682247137070936'
+  type: MLFLOW_EXPERIMENT

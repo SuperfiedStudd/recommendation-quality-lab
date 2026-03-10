@@ -1,0 +1,7 @@
+artifact_location: file:///C:/Code/recommendation-quality-lab/mlruns/542700986344938459
+creation_time: 1773176156012
+experiment_id: '542700986344938459'
+last_update_time: 1773176156012
+lifecycle_stage: active
+name: discovery_rank_experiment
+workspace: default

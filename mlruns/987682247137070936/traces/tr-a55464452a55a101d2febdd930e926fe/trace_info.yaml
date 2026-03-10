@@ -1,0 +1,12 @@
+execution_duration_ms: 347
+request_preview: '{"message": "Great! How do I log a trained model so I can deploy
+  it later?", "turn": 2}'
+request_time: '2026-03-06T18:45:48.858Z'
+response_preview: '{"response": "You can use mlflow.sklearn.log_model() or similar
+  functions to log models. They get saved with the run."}'
+state: OK
+trace_id: tr-a55464452a55a101d2febdd930e926fe
+trace_location:
+  mlflow_experiment:
+    experiment_id: '987682247137070936'
+  type: MLFLOW_EXPERIMENT
