@@ -101,6 +101,53 @@ Four ranking strategies applied to identical 100-item candidate pools across 500
 
 ---
 
+## Product Impact and Business Interpretation
+
+### Product Problem
+
+Recommendation systems in practice often optimize for a single engagement signal — clicks, completion rate, or likes. This creates measurable product-level risks:
+
+- **Repetitive feeds**: Users see the same topics, creators, or formats repeatedly, reducing session satisfaction over time.
+- **Popularity concentration**: A small fraction of content captures most impressions, starving new creators and niche content of exposure.
+- **Poor discovery**: Users are not introduced to relevant content outside their immediate engagement history, weakening long-term retention and ecosystem diversity.
+
+These are not hypothetical concerns — they are structural incentives created by single-objective ranking.
+
+### What This Project Evaluates
+
+This framework measures how different ranking strategies perform across multiple quality dimensions simultaneously. Rather than asking "which strategy gets the most clicks?", it asks "what does each strategy trade away to get those clicks?"
+
+The evaluation covers: relevance (engagement proxy), freshness, tag diversity, author diversity, consecutive repetition rate, novelty (catalog rarity), serendipity (novel and relevant), and global catalog coverage. All strategies are evaluated on the same candidate pool per session, so differences in outcomes are attributable to the ranking logic alone.
+
+### Key Product Insights
+
+The experiments in this project produced four concrete, non-obvious insights:
+
+1. **Engagement-driven heuristics concentrate attention.** Popularity and freshness-boosted rankers surface mostly the same globally popular items. Tag diversity stays low (~0.35), and consecutive repetition is measurable (~4%).
+2. **A lightweight diversity reranker fixes this without hurting engagement.** Diversity-aware reranking doubled tag diversity (0.35 → 0.79), nearly eliminated repetition (0.043 → 0.008), and delivered 5× higher serendipity — all while maintaining the same Top-20 relevance as the popularity baseline.
+3. **Collaborative filtering shifts sourcing but not engagement.** The SVD baseline recommended significantly more history-adjacent (creator-matched) items, but did not improve relevance on this sparse dataset. This means learned models provide a personalization signal, but it is not sufficient as a standalone ranker here.
+4. **The tradeoff is measurable and actionable.** Each strategy has a distinct quality profile. A product team can select or blend strategies based on which dimensions matter most for their users.
+
+### Product Decision Implications
+
+A real product team could apply these findings directly:
+
+- **Keep engagement-based scoring as the primary signal** for candidate ranking.
+- **Apply a lightweight diversity reranker as a second-stage step** to improve feed variety, reduce repetition, and increase discovery — with no measurable cost to engagement proxies.
+- **Use collaborative filtering scores as a blending signal** rather than a standalone ranker, to inject personalization without sacrificing engagement.
+
+This two-stage approach (engagement scoring → diversity reranking) is low-cost, explainable, and compatible with existing ranking infrastructure.
+
+### Example Product Application
+
+This evaluation approach applies directly to products where feed quality depends on more than raw engagement:
+
+- **Short-video feeds** (e.g., TikTok, YouTube Shorts): Diversity reranking reduces "same creator loops" and surfaces fresh content without disrupting watch-time signals.
+- **Streaming content recommendations** (e.g., Netflix, Spotify): Balancing relevance with novelty helps users discover new genres or artists, improving long-term retention.
+- **Marketplace discovery** (e.g., Etsy, Amazon): Reducing repetition and increasing catalog coverage exposes buyers to a broader set of sellers, improving marketplace health.
+
+---
+
 ## Repository Structure
 
 ```text
