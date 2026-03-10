@@ -2,6 +2,14 @@
 
 **Author:** Jasjyot Singh
 
+## Release Status
+Version: v1.0 – DiscoveryRank
+Status: Stable research / evaluation framework
+
+This project provides an offline framework for evaluating recommendation-quality tradeoffs across multiple ranking strategies using the KuaiRand dataset.
+
+---
+
 I built this project to evaluate recommendation ranking strategies beyond raw engagement accuracy. Most recommender evaluations focus on a single dimension — click-through rate or completion — but real recommendation quality is multi-dimensional. A strategy that maximizes clicks can easily trap users in repetitive filter bubbles with no topical diversity and zero discovery of new content.
 
 This framework evaluates ranking strategies across six dimensions simultaneously: **Relevance**, **Freshness**, **Diversity**, **Repetition Risk**, **Novelty**, and **Serendipity**, using the [KuaiRand-1K](https://kuairand.com/) short-video interaction dataset (~43K interactions, ~1K users, ~7K items).
