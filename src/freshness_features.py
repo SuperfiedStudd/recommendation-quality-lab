@@ -34,7 +34,7 @@ def calculate_freshness(df: pd.DataFrame, upload_dt_col: str = "upload_dt", inte
     # 1. Convert valid datetimes to UNIX epoch milliseconds.
     # Strategy: use .apply() on valid rows to call .timestamp() (→ seconds float) * 1000 (→ ms).
     # .timestamp() is explicit about timezone handling (assumes local tz for naive datetimes;
-    # KuaiRand upload_dt dates have no tz, so we normalize to UTC before conversion).
+    # KuaiRand upload_dt dates have no tz, so I normalize to UTC before conversion).
     def _to_epoch_ms(ts):
         """Convert a pandas Timestamp to UNIX epoch milliseconds (float64)."""
         return ts.tz_localize('UTC').timestamp() * 1000.0

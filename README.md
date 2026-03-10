@@ -1,76 +1,154 @@
-# DiscoveryRank: Recommendation Quality Lab
+# DiscoveryRank: Recommendation Quality Evaluation Lab
 
-I built this Python-first recommendation quality evaluation lab to objectively measure ranking tradeoffs using the KuaiRand-1K dataset. 
+**Author:** Jasjyot Singh
 
-Recommendation quality is inherently multi-dimensional. While raw engagement (clicks, watch time) is easy to optimize for, purely engagement-driven systems often trap users in repetitive filter bubbles. This framework explicitly evaluates strategies beyond simple relevance, scoring them across six dimensions: **Relevance**, **Freshness**, **Diversity**, **Repetition Risk**, **Novelty**, and **Serendipity**. 
+I built this project to evaluate recommendation ranking strategies beyond raw engagement accuracy. Most recommender evaluations focus on a single dimension — click-through rate or completion — but real recommendation quality is multi-dimensional. A strategy that maximizes clicks can easily trap users in repetitive filter bubbles with no topical diversity and zero discovery of new content.
 
-My main contribution here is not a production serving app, but rather a clean offline evaluation framework. The project systematically pipelines data preparation, multi-source candidate generation, and ranking, allowing for an honest, explainable comparison between simple heuristics and learned matrix factorization models.
+This framework evaluates ranking strategies across six dimensions simultaneously: **Relevance**, **Freshness**, **Diversity**, **Repetition Risk**, **Novelty**, and **Serendipity**, using the [KuaiRand-1K](https://kuairand.com/) short-video interaction dataset (~43K interactions, ~1K users, ~7K items).
 
----
-
-## 🏗️ Architecture & Pipeline
-
-The project follows a modular offline recommender architecture:
-
-`Data Prep` → `Sessionization` → `Candidate Generation` → `Ranking` → `Evaluation`
-
-1. **Data Prep & Sessionization**: Merges raw KuaiRand-1K logs and features (`src/data_prep.py`), dropping corrupted data, and sequences interactions into logical viewing sessions (`src/session_builder.py`).
-2. **Feature Engineering**: Derives binary relevance (`src/relevance_labels.py`) and calculates time-relative item freshness based on upload timestamps (`src/freshness_features.py`).
-3. **Candidate Generation**: To prevent data leakage, pools of 100 items per session are generated using strictly prior data (`src/candidate_generation.py`). The sourcing blends: *Observed*, *Popular*, *History-Adjacent*, and *Random* items.
-4. **Ranking Baseline Models**: Candidates are scored by heuristic rankers (popularity, freshness-boosted, diversity-aware rerank in `src/ranking_strategies.py`) and a learned matrix factorization baseline (Scipy Truncated SVD in `src/model_baselines.py`).
-5. **Evaluation**: Evaluates the ranked outputs on all 6 dimensions simultaneously (`src/eval_metrics.py`).
+The project's main contribution is a clean, modular offline evaluation pipeline that generates realistic candidate pools, applies multiple ranking strategies to identical pools, and measures the resulting quality tradeoffs honestly — including cases where a learned model does not outperform simple heuristics.
 
 ---
 
-## 🌟 Key Findings & Tradeoffs (Phase 3 Results)
+## Pipeline Architecture
 
-I evaluated heuristic and learned strategies over realistic 100-item candidate pools. The findings highlight structural tradeoffs rather than claiming a single "winner":
+The project follows a modular offline recommender architecture with strict temporal separation between training and evaluation data:
 
-1. **Diversity Reranking Works**: A greedy diversity-aware reranker successfully doubled tag diversity and practically eliminated consecutive repetitive content without sacrificing Top-20 relevance. It simultaneously achieved the highest serendipity score.
-2. **Learned Baselines vs. Heuristics**: The learned matrix factorization baseline (Truncated SVD) did not beat simple heuristics on immediate, proxy engagement signals. This is an honest, expected result in sparse short-video settings where heuristic rankers explicitly exploit raw engagement counts.
-3. **Sourcing Shifts**: While the SVD model lost on raw relevance, it shifted sourcing patterns considerably—surfacing significantly more *history-adjacent* (creator-matched) items than global-popularity approaches. This demonstrates how learned models implicitly personalize catalog discovery, even if it hurts short-term proxy metrics.
+```mermaid
+graph LR
+    A[KuaiRand-1K<br/>Raw Logs] --> B[Data Prep<br/>& Merge]
+    B --> C[Sessionization]
+    C --> D[Feature Engineering<br/>Relevance · Freshness]
+    D --> E[Temporal<br/>Train/Test Split]
+    E --> F[Candidate<br/>Generation]
+    F --> G[Ranking<br/>Strategies]
+    G --> H[Offline<br/>Evaluation]
+```
+
+| Stage | Module | What It Does |
+|---|---|---|
+| Data Prep | `src/data_prep.py` | Merges KuaiRand-1K interaction logs with video metadata |
+| Sessionization | `src/session_builder.py` | Groups interactions into viewing sessions using time-gap heuristics |
+| Relevance Labels | `src/relevance_labels.py` | Derives binary `y_relevant` from explicit signals (like/follow/comment) and implicit completion ratio |
+| Freshness Features | `src/freshness_features.py` | Computes `item_age_days` relative to each interaction's timestamp |
+| Candidate Generation | `src/candidate_generation.py` | Builds time-safe 100-item pools blending observed, popular, history-adjacent, and random items |
+| Ranking | `src/ranking_strategies.py` | Heuristic rankers: popularity, freshness-boosted, diversity-aware rerank |
+| ML Baseline | `src/model_baselines.py` | Truncated SVD matrix factorization via scipy |
+| Evaluation | `src/eval_metrics.py` | Scores ranked lists on relevance, freshness, diversity, repetition, novelty, serendipity |
+
+### Key Design Decisions
+
+- **Candidate generation vs. ranking**: These are separate stages. The candidate generator builds a pool of 100 items from multiple sources using only past data. Rankers then score and reorder that same pool. This mirrors production two-stage recommender architectures and ensures all strategies are compared on identical candidate sets.
+- **Temporal split**: The dataset is split chronologically (80/20) so the SVD model trains only on past data and candidate pools draw only from historical interactions. No future data leaks into evaluation.
 
 ---
 
-## 📂 Repository Structure
+## Project Phases
+
+### Phase 1 — Baseline Evaluation
+Evaluated three heuristic ranking strategies (popularity, freshness-boosted, diversity-aware rerank) on small observed-only session pools. Established the evaluation framework and metric definitions.
+
+### Phase 2 — Realistic Candidate Pools
+Moved from reranking only the 3–5 observed items per session to generating realistic 100-item candidate pools. This stressed the strategies properly — finding relevant items among 97 assumed-negative decoys is harder than sorting a handful of positives. The diversity-aware reranker showed its first clear advantage here, doubling tag diversity without losing relevance.
+
+### Phase 3 — ML Baseline & Advanced Metrics
+Added a strict temporal train/test split, a learned Truncated SVD baseline, and three advanced metrics: novelty (catalog rarity), serendipity (novel + relevant), and global catalog coverage. Tracked which candidate source (observed, popular, history, random) dominated each strategy's Top-20.
+
+---
+
+## Experiment Design & Findings
+
+### What Was Tested
+Four ranking strategies applied to identical 100-item candidate pools across 500 test sessions under a strict temporal split:
+- **Popularity**: Ranks by raw engagement score
+- **Freshness-Boosted**: Applies exponential age decay to the engagement score
+- **Diversity-Aware Rerank**: Greedy reranker that penalizes consecutive same-author/same-tag items
+- **SVD Baseline**: Truncated SVD matrix factorization (50 latent factors, scipy)
+
+### What Stayed Constant
+- Same candidate pool per session (100 items: observed + popular + history-adjacent + random)
+- Same Top-20 evaluation cutoff
+- Same temporal split (train ≤ 80th percentile, test > 80th percentile)
+
+### Results
+
+![Phase 3 Strategy Comparison](docs/phase3_strategy_comparison.png)
+
+| Strategy | Relevance | Tag Diversity | Repetition Rate | Serendipity | Coverage |
+|---|---|---|---|---|---|
+| Popularity | 0.007 | 0.349 | 0.043 | 0.018 | 34.2% |
+| Freshness | 0.007 | 0.349 | 0.045 | 0.018 | 34.4% |
+| **Diversity Rerank** | **0.007** | **0.789** | **0.008** | **0.091** | 34.2% |
+| SVD Baseline | 0.002 | 0.349 | 0.044 | 0.018 | 29.5% |
+
+### What I Learned
+
+1. **Diversity reranking is effective and free.** The greedy diversity-aware reranker doubled tag diversity (0.35 → 0.79), nearly eliminated consecutive repetition (0.043 → 0.008), and achieved the highest serendipity (0.091) — all without losing any Top-20 relevance compared to the popularity baseline.
+
+2. **The SVD baseline did not beat heuristics on relevance.** This is an honest and expected result. On sparse, skewed short-video data where heuristic rankers directly exploit raw engagement counts, a latent factor model with 50 dimensions struggles to find signal that the heuristic doesn't already capture. This is not a failure — it is a useful evaluation outcome.
+
+3. **Learned models shift sourcing patterns.** The SVD baseline surfaced significantly more history-adjacent items (14.8% vs. 3.8%) and fewer observed items (1.5% vs. 12.4%) in its Top-20. It gravitates toward globally popular and creator-adjacent content rather than the in-session engagement signals that heuristics rely on.
+
+4. **Simple heuristics can outperform matrix factorization on immediate engagement proxies, while learned models implicitly personalize catalog discovery.** The tradeoff is real and worth measuring, not hiding.
+
+---
+
+## Repository Structure
 
 ```text
 .
-├── data/           # Requires KuaiRand-1K raw CSVs (not tracked)
-├── docs/           # Design plans and metric definitions
-├── eval/           # Evaluation scaffolding 
-├── notebooks/      # Phased execution notebooks (see order below)
-├── outputs/        # Generated samples, full strategy comparisons, session results
-├── src/            # Core pipeline and strategy modules
-└── requirements.txt
+├── data/               # KuaiRand-1K raw CSVs (not tracked, see .gitignore)
+├── docs/               # Design documents, metric definitions, result assets
+├── eval/               # Evaluation scaffolding
+├── notebooks/          # Phased analysis notebooks (run in order)
+├── outputs/            # Pipeline artifacts and result CSVs (not tracked)
+├── src/                # Core pipeline modules
+├── requirements.txt
+├── run_all.py          # One-command reproduction script
+└── README.md
 ```
 
 ---
 
-## 🚀 Setup & Reproduction
+## Setup & Reproduction
 
-The setup uses lightweight tools and avoids heavy dependencies.
-
-### 1. Install Dependencies
+### Install
 ```bash
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+source .venv/bin/activate    # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Execution Order
-The analysis is structured linearly. I recommend running the notebooks in this exact order:
+### Quick Reproduction
+Run the entire pipeline end-to-end:
+```bash
+python run_all.py
+```
+This executes all 5 notebooks in order via `jupyter nbconvert` and writes results to `outputs/`.
 
-1. `notebooks/01_pipeline_check.ipynb` — Builds the master interaction log (`outputs/pipeline_sample.csv`).
-2. `notebooks/02_validation_checks.ipynb` — Validates labeling, missing data, and target features.
-3. `notebooks/03_baseline_strategy_comparison.ipynb` — Phase 1: Reranks only observed ground-truth items.
-4. `notebooks/04_candidate_pool_strategy_comparison.ipynb` — Phase 2: Reranks realistic 100-item multi-source pools.
-5. `notebooks/05_ml_baseline_and_advanced_eval.ipynb` — Phase 3: Strict temporal splits, SVD baseline, and advanced evaluation.
+### Manual Notebook Order
+If you prefer to run notebooks interactively:
 
-*Note: Final artifacts and tradeoff tables are written directly to the `outputs/` directory.*
+1. `notebooks/01_pipeline_check.ipynb` — Builds `outputs/pipeline_sample.csv` from raw KuaiRand-1K data
+2. `notebooks/02_validation_checks.ipynb` — Validates data integrity, label logic, and feature distributions
+3. `notebooks/03_baseline_strategy_comparison.ipynb` — Phase 1: ranks observed-only session items
+4. `notebooks/04_candidate_pool_strategy_comparison.ipynb` — Phase 2: ranks 100-item multi-source pools
+5. `notebooks/05_ml_baseline_and_advanced_eval.ipynb` — Phase 3: temporal split, SVD baseline, advanced metrics
+
+### Data Requirement
+Place KuaiRand-1K CSVs in `data/` before running. The dataset is available at [kuairand.com](https://kuairand.com/).
 
 ---
 
-## ⚠️ Limitations
-- **Dataset Boundaries**: KuaiRand-1K lacks rich semantic content features (e.g., embeddings or audio/visual data). Tags and Authors are the primary metadata vectors.
-- **Scope**: This repository is designed exclusively for offline batch evaluation. It does not include serving infrastructure or online A/B testing components. Future work could integrate semantic embedding distances directly into the diversity penalization steps.
+## Limitations
+
+- **No deployment or serving.** This is an offline evaluation framework, not a production recommender.
+- **Dataset constraints.** KuaiRand-1K lacks rich semantic features (embeddings, audio/visual). Diversity and repetition metrics rely on `tag` and `author_id` metadata.
+- **Missing impression rank.** The dataset does not include the position at which items were displayed, so traditional NDCG/MRR metrics are not applicable.
+- **SVD, not ALS.** The original plan used the `implicit` library (ALS), but it requires C++ build tools. The working implementation uses scipy's truncated SVD as a dependency-free fallback.
+
+## Future Work
+
+- Integrate content embeddings (if available) into the diversity and repetition penalty functions.
+- Experiment with a two-stage scoring model where SVD scores are blended with heuristic signals rather than used standalone.
+- Add session-level novelty tracking to measure whether diversity gains persist across consecutive sessions for the same user.

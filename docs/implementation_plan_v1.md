@@ -1,6 +1,6 @@
 # DiscoveryRank: Implementation Plan v1
 
-This document maps the available raw KuaiRand-1K data into the offline evaluation framework for our four key dimensions. 
+This document maps the available raw KuaiRand-1K data into the offline evaluation framework for the four key dimensions. 
 
 ## 1. Data to Evaluation Mapping
 
@@ -28,10 +28,10 @@ This document maps the available raw KuaiRand-1K data into the offline evaluatio
 
 ## 3. Quiet Implementation Assumptions
 
-* **Missing Upload Dates:** When `upload_dt` is missing (58 nulls), we will fall back to the first observed interaction `time_ms` for that `video_id` in the dataset, under the assumption that the video was freshly uploaded just prior to its first view.
-* **Missing Tags:** We assume missing `tag` values represent a valid single "Unknown" cluster, rather than treating them as perfectly distinct.
-* **Impression Guarantee:** We assume every row in the `log_*` dataset represents an item that was actually presented and visible to the user, regardless of `play_time_ms`.
-* **Unordered Sets vs Ranked Lists:** Because we lack the exact ranked sequence of the impression payload, we will initially evaluate the grouped "session" items as an unordered set for diversity and freshness metrics, and use chronological interaction as a loose proxy for rank.
+* **Missing Upload Dates:** When `upload_dt` is missing (58 nulls), I fall back to the first observed interaction `time_ms` for that `video_id` in the dataset, under the assumption that the video was freshly uploaded just prior to its first view.
+* **Missing Tags:** I assume missing `tag` values represent a valid single "Unknown" cluster, rather than treating them as perfectly distinct.
+* **Impression Guarantee:** I assume every row in the `log_*` dataset represents an item that was actually presented and visible to the user, regardless of `play_time_ms`.
+* **Unordered Sets vs Ranked Lists:** Because I lack the exact ranked sequence of the impression payload, I will initially evaluate the grouped "session" items as an unordered set for diversity and freshness metrics, and use chronological interaction as a loose proxy for rank.
 
 ## 4. Internal Modules to Build (src/)
 
@@ -41,4 +41,4 @@ This document maps the available raw KuaiRand-1K data into the offline evaluatio
 * **`freshness_features.py`**: Should output the delta `age_ms` array.
 * **`diversity_features.py`**: Should output clustered group IDs or vectorized categorical representations for distance calculations.
 * **`eval_metrics.py`**: Should output the mathematical aggregate scores (e.g., Diversity Score, Average Freshness) given a sequence or set of items.
-* **`ranking_strategies.py`**: Should output dummy ranked lists (e.g., Random, Most Popular, Chronological) for us to battle-test the `eval_metrics.py` system against realistic baselines.
+* **`ranking_strategies.py`**: Should output dummy ranked lists (e.g., Random, Most Popular, Chronological) for me to battle-test the `eval_metrics.py` system against realistic baselines.
