@@ -18,7 +18,7 @@ This project focuses on **recommendation-quality evaluation** rather than buildi
 
 ### 3. Diversity
 * **Item Attributes (Video Basic Features):** Features like `tag`, `music_id`, and `video_type` provide basic categorizations of content.
-* **Evaluation Fit:** This data likely supports diversity by allowing us to calculate intra-list diversity metrics. For instance, I can measure the uniqueness of `tag` or `music_id` within a user's session or top-K recommended items. If a ranking strategy only surfaces videos with identical tags to a specific user, it would score poorly on topical diversity.
+* **Evaluation Fit:** This data likely supports diversity by allowing me to calculate intra-list diversity metrics. For instance, I can measure the uniqueness of `tag` or `music_id` within a user's session or top-K recommended items. If a ranking strategy only surfaces videos with identical tags to a specific user, it would score poorly on topical diversity.
 * **Uncertainty & Weakness:** It is uncertain if the `tag` field is rich enough to capture true semantic diversity. The inspection showed 137k+ nulls for `tag`. Without a clearer topic taxonomy, the diversity metrics might be artificially hindered by missing data.
 
 ### 4. Repetition Risk
