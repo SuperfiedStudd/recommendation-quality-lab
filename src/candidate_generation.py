@@ -23,7 +23,7 @@ class SessionCandidateGenerator:
             master_df: The full prepared pipeline dataframe (loaded from pipeline_sample.csv).
                 Must contain session_id, user_id, time_ms, video_id, and features.
         """
-        # We need the dataframe sorted chronologically to safely subset past data
+        # the dataframe needs to be sorted chronologically to safely subset past data
         self.df = master_df.sort_values("time_ms").copy()
 
         # Cache item metadata that is static (doesn't leak future engagement)
@@ -55,7 +55,7 @@ class SessionCandidateGenerator:
         session_df["is_observed_in_session"] = 1
 
         # --- 2. Filter historical data strictly before this session ---
-        # Note: we use ALL users' past interactions here to compute popularity,
+        # Note: I use all users' past interactions here to compute popularity,
         # and this user's specific past interactions for history.
         past_df = self.df[self.df["time_ms"] < session_start_ms]
 
@@ -69,9 +69,9 @@ class SessionCandidateGenerator:
         source_map = {}  # video_id -> source string
         observed_vids = set(session_df["video_id"].tolist())
 
-        # If we have no past data at all (e.g., very first session in the dataset globally),
-        # we can only fall back to random sampling from the known universe (assuming universe is static).
-        # In a strict real-world pipeline, we'd only sample items uploaded before session_start.
+        # If there is no past data at all (e.g., very first session in the dataset globally),
+        # the fallback is to random sampling from the known universe (assuming universe is static).
+        # In a strict real-world pipeline, I'd only sample items uploaded before session_start.
         if past_df.empty:
             # Fallback: purely random from the full item universe. Not ideal but prevents crashing
             # on the absolute earliest timestamp in the sample.
@@ -121,7 +121,7 @@ class SessionCandidateGenerator:
                                 break
 
             # --- 3c. Source > Random Exploration ---
-            # Fill the rest with random items from the past universe that we haven't picked yet
+            # Fill the rest with random items from the past universe that that haven't been picked yet
             past_universe_vids = set(past_df["video_id"].unique())
             remaining_needed = candidates_needed - len(synthetic_vids)
 
@@ -160,7 +160,7 @@ class SessionCandidateGenerator:
         synth_df["implicit_completion_ratio"] = 0.0
         synth_df["explicit_positive_any"] = 0
         synth_df["explicit_negative"] = 0
-        # Optional: We could impute is_click = 0, is_like = 0, etc. if needed by strategies.
+        # Optional: I could impute is_click = 0, is_like = 0, etc. if needed by strategies.
         # But strategies should only rely on the aggregate features strictly.
 
         # Merge metadata (author_id, tag)
@@ -169,8 +169,8 @@ class SessionCandidateGenerator:
         # --- 5. Unify and recalculate strictly-time-dependent features (item_age_days) ---
         pool_df = pd.concat([session_df, synth_df], ignore_index=True)
 
-        # We must recalculate item_age_days for the synthetic items relative to the session start time.
-        # We rely on 'upload_time_ms' being statically merged if available, mapped from master_df
+        # I must recalculate item_age_days for the synthetic items relative to the session start time.
+        # I rely on 'upload_time_ms' being statically merged if available, mapped from master_df
         if "upload_time_ms" in self.df.columns:
             upload_map = self.df[["video_id", "upload_time_ms"]].drop_duplicates("video_id")
             # Drop existing if it came along for the ride in session_df, to cleanly merge

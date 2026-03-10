@@ -8,7 +8,7 @@ Responsibility:
   to rank candidates.
 
 Design Note:
-  We originally planned to use `benfred/implicit` (ALS), but it requires
+  I originally planned to use `benfred/implicit` (ALS), but it requires
   C++ build tools on Windows. This fallback uses scipy.sparse.linalg.svds
   to decompose the user-item interaction matrix, achieving a similar
   latent-factor collaborative filtering effect without extra dependencies.

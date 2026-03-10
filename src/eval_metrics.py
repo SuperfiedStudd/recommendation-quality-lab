@@ -27,7 +27,7 @@ def relevance_score(ranked_df: pd.DataFrame, k: int = None) -> dict:
 
     Assumption: y_relevant is a binary label derived in relevance_labels.py:
         1 if explicit positive (like/follow/forward/comment) OR completion > 0.8, else 0 (with hate = 0 override).
-        This is an offline proxy — we are measuring how many items in the ranked set the user actually engaged with.
+        This is an offline proxy — I am measuring how many items in the ranked set the user actually engaged with.
     """
     df = ranked_df.sort_values("rank")
     if k is not None:

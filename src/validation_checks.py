@@ -15,8 +15,8 @@ def check_logical_contradictions(df: pd.DataFrame) -> dict:
     masks = {}
     
     # 1. Hate but Relevant
-    # We explicitly defined y_relevant to yield 0 if is_hate == 1. 
-    # If this is violated, our label logic is broken.
+    # I explicitly defined y_relevant to yield 0 if is_hate == 1. 
+    # If this is violated, the label logic is broken.
     masks['hate_but_relevant'] = (df['is_hate'] == 1) & (df['y_relevant'] == 1)
     
     # 2. Impossible negative duration
@@ -28,7 +28,7 @@ def check_logical_contradictions(df: pd.DataFrame) -> dict:
     
     # 4. Duplicate Interactions
     # A user shouldn't interact with the exact same video at the exact same millisecond entirely redundantly.
-    # Note: KuaiRand allows the same user/video across different times, so we explicitly check (user, video, time).
+    # Note: KuaiRand allows the same user/video across different times, so I explicitly check (user, video, time).
     masks['exact_duplicate_event'] = df.duplicated(subset=['user_id', 'video_id', 'time_ms'], keep=False)
     
     # 5. Missing Upload Date but age fields calculated

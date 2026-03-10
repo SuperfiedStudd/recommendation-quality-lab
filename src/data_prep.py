@@ -38,10 +38,10 @@ def load_and_merge_data(data_dir: str, log_files: list, sample_size: int = None)
     logs_df = pd.concat(all_logs, ignore_index=True)
     
     # 3. Join logic
-    # We do a left join to keep all log interactions even if video features are missing
+    # I do a left join to keep all log interactions even if video features are missing
     merged_df = logs_df.merge(video_df, on="video_id", how="left")
     
-    # Simple explicit imputation for missing tags as outlined in our assumption plan
+    # Simple explicit imputation for missing tags as outlined in the assumption plan
     if 'tag' in merged_df.columns:
         merged_df['tag'] = merged_df['tag'].fillna("Unknown")
         

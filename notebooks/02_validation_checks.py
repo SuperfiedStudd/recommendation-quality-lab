@@ -3,8 +3,8 @@
 
 # # Phase 2: Pipeline Validation & Sanity Checks
 # 
-# This notebook comprehensively tests the output of `pipeline_sample.csv` to ensure our data mapping 
-# and derived features are behaving logically before we begin evaluating models.
+# This notebook comprehensively tests the output of `pipeline_sample.csv` to ensure the data mapping 
+# and derived features are behaving logically before I begin evaluating models.
 
 # In[ ]:
 
