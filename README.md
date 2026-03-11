@@ -4,8 +4,6 @@
 **Release Status:** v2.0 – Complete Online Recommendation Loop
 
 > **Repo Description:** End-to-end short-video recommendation system prototype with replay, serving, logging, simulation, and offline evaluation.
-> 
-> **Suggested GitHub Topics:** `recommender-system`, `recommendation-engine`, `ranking`, `fastapi`, `simulation`, `ml-evaluation`, `python`
 
 ---
 
@@ -14,31 +12,6 @@
 DiscoveryRank is a fully functional, end-to-end recommendation system prototype demonstrating the entire lifecycle of a ranking engine. It replays historical interaction data, maintains dynamic in-memory user and item states, generates personalized candidate pools, ranks them using pluggable policies, serves them via a Fast REST API, simulates probabilistic user interactions natively, and logs the outcomes.
 
 By running this continuous online loop, the system captures the long-term impacts of ranking algorithms, using offline metrics (like Click-Through Rate, Diversity, Novelty, and Serendipity) as the evaluation backbone to measure how algorithms physically reshape a user's catalog exposure over time.
-
----
-
-## System Architecture
-
-The core of the system is the cyclical interaction between the serving layer and the simulation environment:
-
-```mermaid
-graph TD
-    A[Event Replay <br> historical stream] --> B[(State Manager <br> users/items/sessions)]
-    
-    C[Candidate Generation] --> D[Policy/Ranking]
-    B --> C
-    D --> E[FastAPI Endpoint <br> /recommend]
-    
-    E --> F[Interaction Simulator <br> mock clicks/watches]
-    F --> G[Outcome Logger]
-    B -.-> F
-    G -.-> |Update User State| B
-    
-    D -.-> H[Exposure Logger]
-    G -.-> I[Metrics Engine <br> CTR, Diversity, Coverage]
-    H -.-> I
-    I --> J[Experiment Tracking <br> MLflow / CSV]
-```
 
 ---
 
@@ -89,6 +62,31 @@ curl "http://127.0.0.1:8000/recommend?user_id=1&session_id=new_sess&k=3"
 
 ---
 
+## System Architecture
+
+The prototype relies on cyclical interaction between the serving layer and the simulation environment:
+
+```mermaid
+graph TD
+    A[Event Replay <br> historical stream] --> B[(State Manager <br> users/items/sessions)]
+    
+    C[Candidate Generation] --> D[Policy/Ranking]
+    B --> C
+    D --> E[FastAPI Endpoint <br> /recommend]
+    
+    E --> F[Interaction Simulator <br> mock clicks/watches]
+    F --> G[Outcome Logger]
+    B -.-> F
+    G -.-> |Update User State| B
+    
+    D -.-> H[Exposure Logger]
+    G -.-> I[Metrics Engine <br> CTR, Diversity, Coverage]
+    H -.-> I
+    I --> J[Experiment Tracking <br> MLflow / CSV]
+```
+
+---
+
 ## Results & Tradeoffs
 
 Running the online loop reveals the classic recommendation system tensions:
@@ -135,7 +133,7 @@ recommendation-quality-lab/
 
 ---
 
-## Setup & Offline Evaluation
+## Run Locally
 
 It takes about 2 minutes to run the entire prototype locally.
 
@@ -146,15 +144,15 @@ source .venv/bin/activate    # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Full Offline Pipeline Run (Baseline Generation)
-Extracts data, computes offline metrics, generates initial tradeoff plots, and logs the experiment to a local MLflow tracking server.
+### 2. Base Evaluation Run
+Extracts data, computes offline metrics, generates initial plots, and logs to MLflow.
 ```bash
 python run_all.py
 ```
-*(Requires KuaiRand-1K CSVs mapped inside `data/`)*
+*(Requires KuaiRand-1K CSVs extracted into `data/`)*
 
-### 3. Launch the Interactive Simulator
-A visual tool demonstrating how algorithm choice alters a user's exposure over repeated offline sessions to create (or break) filter bubbles.
+### 3. Interactive Simulator
+A visual tool demonstrating how algorithm choice alters user exposure over repeated sessions.
 ```bash
 streamlit run app/filter_bubble_simulator.py
 ```
