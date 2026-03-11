@@ -1,9 +1,9 @@
 # DiscoveryRank: Recommendation Quality Evaluation Lab
 
 **Author:** Jasjyot Singh  
-**Release Status:** v1.0 – Stable research / evaluation framework
+**Release Status:** v2.0 – End-to-End Online Recommendation Loop
 
-> **Repo Description:** An offline ML experimentation lab simulating recommendation quality tradeoffs, diversity, and filter-bubble risks using the KuaiRand dataset.  
+> **Repo Description:** An ML experimentation lab simulating recommendation quality tradeoffs, diversity, and filter-bubble risks using the KuaiRand dataset. Now extended with a full end-to-end recommendation system loop: event replay → state management → serving → logging → simulation → offline evaluation.  
 > **Suggested GitHub Topics:** `machine-learning`, `recommender-systems`, `evaluation-framework`, `mlflow`, `streamlit`, `python`
 
 ---
@@ -12,6 +12,74 @@
 This project provides a robust offline framework to evaluate recommendation ranking strategies beyond raw engagement accuracy. Most recommender evaluations optimize for a single dimension—like click-through rate. However, maximizing clicks often traps users in repetitive filter bubbles with zero discovery of new content.
 
 DiscoveryRank evaluates ranking strategies across six simultaneous dimensions: **Relevance**, **Freshness**, **Diversity**, **Repetition Risk**, **Novelty**, and **Serendipity**, using the [KuaiRand-1K](https://kuairand.com/) short-video interaction dataset. It generates realistic candidate pools, ranks them using both ML models (SVD) and fast heuristics (Diversity-aware rerankers), and tracks the tradeoffs transparently via local MLflow.
+
+### Online Recommendation Loop (v2.0)
+The system now includes a full **end-to-end recommendation loop** that demonstrates how offline evaluation integrates with online serving:
+
+```
+Event Replay → State Update → Candidate Generation → Ranking → Serving → Logging → Simulation → Offline Evaluation
+```
+
+This loop:
+1. **Replays** historical interaction events as a chronological stream
+2. **Maintains** real-time user/item/session state in memory
+3. **Generates** recommendations using pluggable ranking policies
+4. **Simulates** user reactions with stochastic behavioral heuristics
+5. **Logs** both exposure and outcome data
+6. **Evaluates** and compares policies on CTR, watch time, coverage, diversity, and creator spread
+
+---
+
+## System Architecture
+
+```mermaid
+graph TD
+    A[Event Replay] --> B[State Manager]
+    B --> C[Candidate Generation]
+    C --> D[Ranking]
+    D --> E[Serving Layer]
+    E --> F[Exposure Logging]
+    E --> G[Interaction Simulator]
+    G --> H[Outcome Logging]
+    H --> B
+    F --> I[Offline Evaluation]
+    H --> I
+    I --> J[Policy Comparison]
+```
+
+### Module Map
+
+| Layer | Module | Responsibility |
+|-------|--------|---------------|
+| **Events** | `src/data/event_schema.py` | Canonical event dataclass with validation |
+| **Events** | `src/data/event_replay.py` | Chronological event stream from historical data |
+| **State** | `src/features/state_manager.py` | Central state coordinator |
+| **Serving** | `src/serving/recommender_service.py` | Recommendation pipeline (candidates → ranking → top-K) |
+| **API** | `src/api/recommendation_api.py` | FastAPI layer exposing `GET /recommend` |
+| **Logging** | `src/logging_layer/exposure_logger.py` | Recommendation exposure logs |
+| **Logging** | `src/logging_layer/outcome_logger.py` | User interaction outcome logs |
+| **Simulation** | `src/simulation/interaction_simulator.py` | Stochastic behavioral simulator |
+| **Evaluation** | `src/evaluation/policy_backtest.py` | Multi-policy backtest orchestrator |
+| **Evaluation** | `src/evaluation/metrics_extensions.py` | CTR, watch time, coverage, diversity, creator spread |
+| **CLI** | `run_simulation.py` | CLI loop orchestrating the end-to-end experiment |
+
+---
+
+## Quick Start & Demo
+
+### 1. Run the Full Experiment via CLI
+Execute the entire simulation loop for a specific policy from the command line:
+```bash
+python run_simulation.py --policy hybrid --events 10000
+```
+*(Produces a metrics summary and saves `policy_comparison.csv` and a bar chart `.png` to `outputs/experiments/`)*
+
+### 2. Run the API locally
+Serve recommendations dynamically via a lightweight REST layer:
+```bash
+uvicorn src.api.recommendation_api:app --reload
+```
+Test with: `http://127.0.0.1:8000/recommend?user_id=1&session_id=1_1&k=5`
 
 ---
 
@@ -60,13 +128,24 @@ python run_all.py
 ```
 *(Requires KuaiRand-1K CSVs in `data/`)*
 
-### 3. Launch the Interactive Simulator
+### 3. Run the Online Recommendation Loop
+Execute the end-to-end policy comparison notebook:
+```bash
+jupyter nbconvert --to notebook --execute notebooks/06_online_loop_policy_comparison.ipynb --output 06_online_loop_policy_comparison.ipynb
+```
+This will:
+- Replay events and build state
+- Generate recommendations with 3 policies (Popularity, Recency Decay, Hybrid)
+- Simulate outcomes and log everything to `outputs/logs/`
+- Produce `outputs/policy_comparison.csv` and visual charts
+
+### 4. Launch the Interactive Simulator
 The simulator visually breaks down what repeated offline sessions look like from the user's perspective.
 ```bash
 streamlit run app/filter_bubble_simulator.py
 ```
 
-### 4. View Experiment Tracking Artifacts
+### 5. View Experiment Tracking Artifacts
 To compare metrics and generated plots across different strategy combinations, launch the local MLflow UI:
 ```bash
 mlflow ui
@@ -75,19 +154,25 @@ mlflow ui
 
 ---
 
+## Output Artifacts
+
+### Offline Evaluation (`python run_all.py`)
+- `outputs/runs/<timestamp>/tables/` — Strategy comparison CSVs
+- `outputs/runs/<timestamp>/plots/` — Automated PNG plots
+- `outputs/runs/<timestamp>/artifacts/` — Config snapshots
+
+### Online Loop (`notebooks/06_online_loop_policy_comparison.ipynb`)
+- `outputs/logs/` — Exposure and outcome CSVs per policy
+- `outputs/experiments/` — Per-policy result files
+- `outputs/policy_comparison.csv` — Final comparison table
+
+---
+
 ## What the Interactive Simulator Shows
 The included Streamlit app (`app/filter_bubble_simulator.py`) loads the repository's deterministic dataset to simulate repeated user sessions.
 - **Strategy Selection:** Pick between Popularity-based, Diversity-Aware, or Random baselines.
 - **Exposure Tracking:** See exactly how the diversity ratio and category concentration change as you simulate subsequent user clicks.
 - **Feedback Loops:** Watch how the underlying engine boosts engagement probabilities based on historical click patterns, visualizing the creation of a filter bubble.
-
-## What Artifacts It Produces
-A successful run of `python run_all.py` leverages configuration from `configs/default_config.yaml` to orchestrate existing logic, producing:
-1. **Versioned Output Directories**: `outputs/runs/<timestamp>/` cleanly organizes:
-   - `tables/`: Summary CSVs (e.g., `phase3_strategy_comparison.csv`)
-   - `plots/`: Automated PNG plots (e.g., `relevance_vs_novelty.png`, `global_coverage.png`)
-   - `artifacts/`: The exact YAML config used for the run to guarantee reproducibility.
-2. **MLflow Run Records**: Local logs (`mlruns/`) summarizing the cross-strategy metrics alongside their respective artifacts.
 
 ---
 

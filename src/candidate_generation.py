@@ -47,9 +47,9 @@ class SessionCandidateGenerator:
         session_df = self.df[session_mask].copy()
 
         if session_df.empty:
-            raise ValueError(f"Session {session_id} for user {user_id} not found in master data.")
-
-        session_start_ms = session_df["time_ms"].min()
+            session_start_ms = self.df["time_ms"].max() + 1
+        else:
+            session_start_ms = session_df["time_ms"].min()
 
         # Flag observed items natively
         session_df["is_observed_in_session"] = 1
