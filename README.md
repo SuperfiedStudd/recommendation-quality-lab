@@ -1,21 +1,19 @@
-# DiscoveryRank: End-to-End Short-Video Recommendation System
+# DiscoveryRank: End-to-End Recommendation System Prototype
 
 **Author:** Jasjyot Singh  
 **Release Status:** v2.0 – Complete Online Recommendation Loop
 
-> **Repo Description:** An end-to-end short-video recommendation system prototype demonstrating event replay, in-memory state management, candidate generation, FastAPI serving, and interaction simulation to evaluate ranking tradeoffs.
+> **Repo Description:** End-to-end short-video recommendation system prototype with replay, serving, logging, simulation, and offline evaluation.
 > 
-> **Suggested GitHub Topics:** `recommender-system`, `ranking`, `fastapi`, `simulation`, `ml-evaluation`, `recommendation-engine`, `python`
+> **Suggested GitHub Topics:** `recommender-system`, `recommendation-engine`, `ranking`, `fastapi`, `simulation`, `ml-evaluation`, `python`
 
 ---
 
 ## What It Does
 
-DiscoveryRank is a fully functional, end-to-end recommendation system prototype designed to evaluate the long-term impacts of ranking algorithms. While most recommenders are evaluated statically on offline accuracy metrics like Click-Through Rate (CTR), maximizing immediate clicks often causes severe filter bubbles and destroys catalog discovery.
+DiscoveryRank is a fully functional, end-to-end recommendation system prototype demonstrating the entire lifecycle of a ranking engine. It replays historical interaction data, maintains dynamic in-memory user and item states, generates personalized candidate pools, ranks them using pluggable policies, serves them via a Fast REST API, simulates probabilistic user interactions natively, and logs the outcomes.
 
-This project moves beyond static offline evaluation by implementing a complete **Online Recommendation Loop**. It replays historical data, maintains dynamic in-memory user/item state, generates personalized candidate pools, ranks them, serves them via a REST API, simulates probabilistic user interactions, and logs the outcomes to track long-term tradeoffs.
-
-The system evaluates ranking strategies across multiple dimensions simultaneously: **Relevance (CTR/Watch Time proxy)**, **Freshness**, **Diversity**, **Repetition Risk**, **Novelty**, and **Serendipity**, using the [KuaiRand-1K](https://kuairand.com/) dataset.
+By running this continuous online loop, the system captures the long-term impacts of ranking algorithms, using offline metrics (like Click-Through Rate, Diversity, Novelty, and Serendipity) as the evaluation backbone to measure how algorithms physically reshape a user's catalog exposure over time.
 
 ---
 
@@ -91,18 +89,17 @@ curl "http://127.0.0.1:8000/recommend?user_id=1&session_id=new_sess&k=3"
 
 ---
 
-## Experimental Results (Tradeoffs)
+## Results & Tradeoffs
 
-Running the online loop reveals the classic recommendation system tensions. A typical comparative outcome of simulating multiple concurrent sessions demonstrates:
-
-- **Popularity-based Policies** maximize immediate proxy engagement (CTR and Watch Time) but suffer from the lowest diversity, creator spread, and catalog coverage. They quickly trap users in filter bubbles.
-- **Hybrid (Diversity-Aware) Policies** explicitly trade a slight drop in immediate engagement (e.g., ~15-20% lower CTR proxy) for massive gains in discovery—often doubling layout diversity, doubling creator spread, and drastically increasing overall catalog coverage.
+Running the online loop reveals the classic recommendation system tensions:
+- **Popularity-based Policies** win immediate proxy engagement (highest CTR and Watch Time) but suffer from the lowest diversity, creator spread, and catalog coverage. They quickly trap users in filter bubbles.
+- **Hybrid (Diversity-Aware) Policies** win layout diversity, creator spread, and overall catalog coverage, explicitly trading a slight drop in immediate engagement for massive gains in discovery.
 
 ---
 
 ## Repository Structure
 
-The architecture is strictly separated cleanly into data, features, serving, simulation, and evaluation modules:
+The architecture is cleanly separated into data, features, serving, simulation, and evaluation modules:
 
 ```text
 recommendation-quality-lab/
