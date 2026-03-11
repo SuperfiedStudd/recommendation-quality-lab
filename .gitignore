@@ -40,5 +40,6 @@ venv.bak/
 # Project specific
 data/
 outputs/
+mlruns/
 !data/.gitkeep
 !outputs/.gitkeep
