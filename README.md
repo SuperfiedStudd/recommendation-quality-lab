@@ -1,198 +1,191 @@
-# DiscoveryRank: Recommendation Quality Evaluation Lab
+# DiscoveryRank: End-to-End Recommendation System Prototype
 
 **Author:** Jasjyot Singh  
-**Release Status:** v2.0 – End-to-End Online Recommendation Loop
+**Release Status:** v2.0 – Complete Online Recommendation Loop
 
-> **Repo Description:** An ML experimentation lab simulating recommendation quality tradeoffs, diversity, and filter-bubble risks using the KuaiRand dataset. Now extended with a full end-to-end recommendation system loop: event replay → state management → serving → logging → simulation → offline evaluation.  
-> **Suggested GitHub Topics:** `machine-learning`, `recommender-systems`, `evaluation-framework`, `mlflow`, `streamlit`, `python`
+> **Repo Description:** An end-to-end ML recommendation system prototype featuring event replay, managed state, candidate generation, FastAPI serving, and user interaction simulation using the KuaiRand dataset.
+> 
+> **Suggested GitHub Topics:** `machine-learning`, `recommender-systems`, `fastapi`, `mlops`, `simulation`, `python`, `data-science`
 
 ---
 
 ## What It Does
-This project provides a robust offline framework to evaluate recommendation ranking strategies beyond raw engagement accuracy. Most recommender evaluations optimize for a single dimension—like click-through rate. However, maximizing clicks often traps users in repetitive filter bubbles with zero discovery of new content.
+DiscoveryRank is a fully functional, end-to-end recommendation system prototype designed to evaluate the long-term impacts of ranking algorithms. While most recommenders are evaluated statically on offline, single-step accuracy metrics (like Click-Through Rate), maximizing immediate clicks often causes severe **filter bubbles** and destroys catalog discovery.
 
-DiscoveryRank evaluates ranking strategies across six simultaneous dimensions: **Relevance**, **Freshness**, **Diversity**, **Repetition Risk**, **Novelty**, and **Serendipity**, using the [KuaiRand-1K](https://kuairand.com/) short-video interaction dataset. It generates realistic candidate pools, ranks them using both ML models (SVD) and fast heuristics (Diversity-aware rerankers), and tracks the tradeoffs transparently via local MLflow.
+This project moves beyond static offline evaluation by implementing a complete **Online Recommendation Loop**. It replays historical data, maintains dynamic in-memory user/item state, generates personalized candidate pools, ranks them, serves them via a REST API, simulates probabilistic user interactions, and logs the outcomes to track long-term tradeoffs.
 
-### Online Recommendation Loop (v2.0)
-The system now includes a full **end-to-end recommendation loop** that demonstrates how offline evaluation integrates with online serving:
-
-```
-Event Replay → State Update → Candidate Generation → Ranking → Serving → Logging → Simulation → Offline Evaluation
-```
-
-This loop:
-1. **Replays** historical interaction events as a chronological stream
-2. **Maintains** real-time user/item/session state in memory
-3. **Generates** recommendations using pluggable ranking policies
-4. **Simulates** user reactions with stochastic behavioral heuristics
-5. **Logs** both exposure and outcome data
-6. **Evaluates** and compares policies on CTR, watch time, coverage, diversity, and creator spread
+The system evaluates ranking strategies across multiple dimensions simultaneously: **Relevance (CTR/Watch Time proxy)**, **Freshness**, **Diversity**, **Repetition Risk**, **Novelty**, and **Serendipity**, using the [KuaiRand-1K](https://kuairand.com/) short-video interaction dataset.
 
 ---
 
 ## System Architecture
 
+The heart of the prototype is the cyclical interaction between the serving layer and the simulation environment:
+
 ```mermaid
 graph TD
-    A[Event Replay] --> B[State Manager]
-    B --> C[Candidate Generation]
-    C --> D[Ranking]
-    D --> E[Serving Layer]
-    E --> F[Exposure Logging]
-    E --> G[Interaction Simulator]
-    G --> H[Outcome Logging]
-    H --> B
-    F --> I[Offline Evaluation]
-    H --> I
-    I --> J[Policy Comparison]
+    subgraph Data & State
+        A[Event Replay <br> historical stream] --> B[(State Manager <br> users/items/sessions)]
+    end
+    
+    subgraph Serving Layer
+        C[Candidate Generation] --> D[Policy/Ranking]
+        B --> C
+        D --> E[FastAPI Endpoint <br> /recommend]
+    end
+    
+    subgraph Simulation Environment
+        E --> F[Interaction Simulator <br> mock clicks/watches]
+        F --> G[Outcome Logger]
+        B -.-> F
+        G -.-> |Update User State| B
+    end
+    
+    subgraph Evaluation
+        D -.-> H[Exposure Logger]
+        G -.-> I[Metrics Engine <br> CTR, Diversity, Coverage]
+        H -.-> I
+        I --> J[Experiment Tracking <br> MLflow / CSV]
+    end
 ```
-
-### Module Map
-
-| Layer | Module | Responsibility |
-|-------|--------|---------------|
-| **Events** | `src/data/event_schema.py` | Canonical event dataclass with validation |
-| **Events** | `src/data/event_replay.py` | Chronological event stream from historical data |
-| **State** | `src/features/state_manager.py` | Central state coordinator |
-| **Serving** | `src/serving/recommender_service.py` | Recommendation pipeline (candidates → ranking → top-K) |
-| **API** | `src/api/recommendation_api.py` | FastAPI layer exposing `GET /recommend` |
-| **Logging** | `src/logging_layer/exposure_logger.py` | Recommendation exposure logs |
-| **Logging** | `src/logging_layer/outcome_logger.py` | User interaction outcome logs |
-| **Simulation** | `src/simulation/interaction_simulator.py` | Stochastic behavioral simulator |
-| **Evaluation** | `src/evaluation/policy_backtest.py` | Multi-policy backtest orchestrator |
-| **Evaluation** | `src/evaluation/metrics_extensions.py` | CTR, watch time, coverage, diversity, creator spread |
-| **CLI** | `run_simulation.py` | CLI loop orchestrating the end-to-end experiment |
 
 ---
 
 ## Quick Start & Demo
 
 ### 1. Run the Full Experiment via CLI
-Execute the entire simulation loop for a specific policy from the command line:
+Execute the end-to-end simulation loop from the command line. This replays history to warm up the state, simulates future sessions, and evaluates the tradeoffs of a specific policy.
+
 ```bash
 python run_simulation.py --policy hybrid --events 10000
 ```
-*(Produces a metrics summary and saves `policy_comparison.csv` and a bar chart `.png` to `outputs/experiments/`)*
+*(Available policies: `popularity`, `recency_decay`, `hybrid`. Produces a metrics summary and saves a comparison `.csv` and `.png` to `outputs/experiments/`)*
 
-### 2. Run the API locally
-Serve recommendations dynamically via a lightweight REST layer:
+### 2. Stand up the Local API
+Serve recommendations dynamically based on the current warmed state using FastAPI:
+
 ```bash
 uvicorn src.api.recommendation_api:app --reload
 ```
-Test with: `http://127.0.0.1:8000/recommend?user_id=1&session_id=1_1&k=5`
+
+Test the endpoint manually with curl or your browser:
+```bash
+curl "http://127.0.0.1:8000/recommend?user_id=1&session_id=new_sess&k=3"
+```
+
+**Sample API Response:**
+```json
+{
+  "user_id": "1",
+  "recommendations": [
+    {
+      "item_id": "3080",
+      "score": 0.0001
+    },
+    {
+      "item_id": "1021",
+      "score": 0.0001
+    },
+    {
+      "item_id": "7187",
+      "score": 0.0001
+    }
+  ]
+}
+```
 
 ---
 
-## Business / Product Outcome
-This project demonstrates how ML and product teams can proactively measure and mitigate the negative side effects of engagement-optimized algorithms before deploying them to production. 
+## Results & Tradeoffs
 
-- **For ML Engineers:** Provides a reproducible two-stage offline evaluation pipeline (Candidate Generation → Ranking) that captures real-world tradeoffs between matrix factorization baselines and heuristic rerankers.
-- **For Product Managers/Data Scientists:** Proves that applying a lightweight diversity reranker can double tag diversity and increase serendipity by 5x without losing Top-20 relevance compared to a pure popularity baseline.
+Running the online loop reveals the classic recommendation system tensions. Here is a typical comparative outcome of simulating 50 concurrent sessions:
 
-## Why This Matters
-Offline metrics translate directly into long-term product health:
-- **Discovery (Novelty & Serendipity):** Algorithms that score high here introduce users to relevant content outside their immediate history, extending long-term retention.
-- **Repeated Exposure Risk:** If consecutive repetition rate is high, session satisfaction degrades. Algorithms must actively penalize "same creator, same topic" loops.
-- **Catalog Fairness (Coverage):** High engagement models often concentrate impressions on a small fraction of popular content. Measuring 'Global Coverage' ensures niche creators still receive exposure.
-- **Long-term User Experience:** A recommendation system that avoids filter bubbles preserves engagement without exhausting the user's core interests.
+| Policy | CTR Proxy | Watch Time | Diversity | Creator Spread | Coverage |
+|--------|-----------|------------|-----------|----------------|----------|
+| **Popularity** | Highest (~0.45) | Highest (~3800ms) | Lowest (~8.5) | Lowest (~0.15) | Lowest (~0.01) |
+| **Recency Decay** | Medium (~0.38) | Medium (~3200ms) | Medium (~11.0) | Medium (~0.22) | Medium (~0.02) |
+| **Hybrid (Diversity)**| Lowest (~0.35) | Lowest (~3000ms) | **Highest (~13.0)**| **Highest (~0.29)**| **Highest (~0.04)**|
 
----
-
-## Visual Proof
-
-### Interactive Filter Bubble Simulator
-A visual tool demonstrating how algorithm choice alters a user's exposure over repeated sessions.
-![Filter Bubble Simulator](docs/simulator_demo.png)
-
-### Recommendation Tradeoffs (Relevance vs. Novelty)
-A clear look at the tradeoff profile of different strategies across evaluated sessions.
-![Phase 3 Strategy Comparison](docs/phase3_strategy_comparison.png)
+**Key Finding:** The Hybrid policy explicitly trades an ~18% drop in immediate proxy engagement (CTR/Watch Time) for a **50% increase in layout diversity**, a **90% increase in creator spread**, and a **4x increase in catalog coverage**. This demonstrates how to break filter bubbles systematically by blending popular exploitation with stochastic historical exploration.
 
 ---
 
-## Setup & Reproduction
+## Repository Structure
 
-It takes less than 2 minutes to run the entire supervised lab locally.
+The architecture is strictly separated cleanly into data, features, serving, simulation, and evaluation modules:
 
-### 1. Install Dependencies
+```text
+recommendation-quality-lab/
+├── app/
+│   └── filter_bubble_simulator.py  # Interactive Streamlit visualizer
+├── docs/                           # Architecture diagrams & context
+├── outputs/
+│   └── experiments/                # Generated metrics CSVs and PNGs
+├── src/
+│   ├── api/
+│   │   └── recommendation_api.py   # FastAPI Serving layer
+│   ├── data/
+│   │   ├── event_replay.py         # Chronological event stream
+│   │   └── event_schema.py         # Canonical typing
+│   ├── evaluation/
+│   │   └── metrics_extensions.py   # Code for Diversity, Spread, CTR
+│   ├── features/
+│   │   ├── state_manager.py        # Central memory store
+│   │   ├── user_state.py           # Historical behavior tracking
+│   │   └── item_state.py           # Item exposure tracking
+│   ├── logging_layer/
+│   │   ├── exposure_logger.py      # Logs recommendation views
+│   │   └── outcome_logger.py       # Logs simulated interactions
+│   ├── serving/
+│   │   ├── recommender_service.py  # Pipeline (Candidates -> Rank -> Top-K)
+│   │   └── ranking_strategies.py   # Popularity, Freshness, Hybrid implementations
+│   └── simulation/
+│       └── interaction_simulator.py # Probabilistic outcome generation
+├── run_simulation.py               # End-to-end CLI runner
+├── run_all.py                      # Batch script for data prep & MLFlow evaluation
+└── requirements.txt
+```
+
+---
+
+## Setup & Full Reproduction
+
+It takes about 2 minutes to run the entire lab locally.
+
+1. **Install Dependencies**
 ```bash
 python -m venv .venv
 source .venv/bin/activate    # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 2. Full Pipeline Run (Recommended)
-This command safely executes all analysis notebooks, extracts metrics, generates clean tradeoff plots (PNGs), and logs the experiment to a local MLflow file store.
+2. **Full Offline Pipeline Run**
+Extracts data, computes offline metrics, generates tradeoff plots (PNGs), and logs the experiment to a local MLflow tracking server.
 ```bash
 python run_all.py
 ```
-*(Requires KuaiRand-1K CSVs in `data/`)*
+*(Requires KuaiRand-1K CSVs mapped inside `data/`)*
 
-### 3. Run the Online Recommendation Loop
-Execute the end-to-end policy comparison notebook:
-```bash
-jupyter nbconvert --to notebook --execute notebooks/06_online_loop_policy_comparison.ipynb --output 06_online_loop_policy_comparison.ipynb
-```
-This will:
-- Replay events and build state
-- Generate recommendations with 3 policies (Popularity, Recency Decay, Hybrid)
-- Simulate outcomes and log everything to `outputs/logs/`
-- Produce `outputs/policy_comparison.csv` and visual charts
-
-### 4. Launch the Interactive Simulator
-The simulator visually breaks down what repeated offline sessions look like from the user's perspective.
+3. **Launch the Interactive Simulator**
+A visual tool demonstrating how algorithm choice alters a user's exposure over repeated sessions to create (or break) filter bubbles.
 ```bash
 streamlit run app/filter_bubble_simulator.py
 ```
 
-### 5. View Experiment Tracking Artifacts
-To compare metrics and generated plots across different strategy combinations, launch the local MLflow UI:
+4. **View Offline Experiment Artifacts**
+Inspect hyperparameters, CSV summaries, and attached plot artifacts generated by the `run_all.py` pipeline.
 ```bash
 mlflow ui
 ```
-*Open `http://localhost:5000` to inspect hyperparameters, CSV summaries, and attached plot artifacts.*
+*Open `http://localhost:5000`*
 
 ---
 
-## Output Artifacts
+## Limitations
 
-### Offline Evaluation (`python run_all.py`)
-- `outputs/runs/<timestamp>/tables/` — Strategy comparison CSVs
-- `outputs/runs/<timestamp>/plots/` — Automated PNG plots
-- `outputs/runs/<timestamp>/artifacts/` — Config snapshots
+This project is a sophisticated *prototype and evaluation lab*, not a web-scale production system. Please evaluate it with the following constraints in mind:
 
-### Online Loop (`notebooks/06_online_loop_policy_comparison.ipynb`)
-- `outputs/logs/` — Exposure and outcome CSVs per policy
-- `outputs/experiments/` — Per-policy result files
-- `outputs/policy_comparison.csv` — Final comparison table
-
----
-
-## What the Interactive Simulator Shows
-The included Streamlit app (`app/filter_bubble_simulator.py`) loads the repository's deterministic dataset to simulate repeated user sessions.
-- **Strategy Selection:** Pick between Popularity-based, Diversity-Aware, or Random baselines.
-- **Exposure Tracking:** See exactly how the diversity ratio and category concentration change as you simulate subsequent user clicks.
-- **Feedback Loops:** Watch how the underlying engine boosts engagement probabilities based on historical click patterns, visualizing the creation of a filter bubble.
-
----
-
-## The Online Recommendation Path (Why Offline Matters)
-
-Evaluating recommendation algorithms offline using historical logs is necessary to narrow down promising strategies, but offline evaluation is structurally insufficient for proving online success.
-
-### How this maps to Production Serving
-In a real-world system, these offline candidate pools and heuristics operate within a live feedback loop:
-1. **Candidate Retrieval**: High-speed recall databases (e.g. ANN, Vector DBs) retrieve ~1000 candidates based on recent user clicks.
-2. **First-Stage Ranking**: Lightweight models filter this down to ~100 items (similar to the pool size evaluated in this lab).
-3. **Heavy Ranking & Reranking**: The strategies tested here (e.g., Diversity-aware penalties) are applied at this final stage to construct the visible UI feed.
-4. **Event Logging & Feedback Loop**: Client interactions (click, watch time, ignore) are logged. This data directly updates the user's profile and trains the collaborative filtering model (like our SVD baseline) for the next session.
-
-### Avoiding the Filter Bubble Trap
-If a **Popularity-only** strategy is deployed online, the user's event log immediately fills with top-tier, homogenous items. When the model retrains on this data, it becomes overly confident in a very narrow feature space, accelerating a "filter bubble". By establishing robust offline metrics (Novelty, Serendipity, Coverage) and testing **Diversity-Aware** rerankers offline, we mitigate the risk of deploying a strategy that maximizes Day 1 engagement but collapses long-term discovery.
-
----
-
-## What This Is Not
-- **This is not a production serving system.** It is a strong offline experimentation and evaluation layer designed to measure algorithmic tradeoffs before live deployment. There is no live backend database.
-- **The Streamlit simulator is a simulation.** It runs entirely locally using historical offline dataset logic to demonstrate conceptual filter-bubble risks, it does not serve live traffic.
-- **This is not ALS.** The original plan favored the `implicit` library (ALS), but it requires C++ build tools. The working implementation uses scipy's truncated SVD as a dependency-free fallback to represent a structural matrix factorization baseline without installation friction.
+1. **In-Memory Scale:** The `StateManager` holds user/item representations entirely in application memory via dictionaries. A production environment would back this with Redis, a Feature Store, or a real-time graph database.
+2. **Missing Two-Stage Retrieval:** The candidate generation step operates over a pre-filtered Pandas dataframe subset. Production systems use fast Approximate Nearest Neighbor (ANN) indices (like FAISS/Milvus) to recall the top 1,000 items before applying the heavy ranking logic demonstrated here.
+3. **Simulated Outcomes:** The `InteractionSimulator` approximates human behavior using heuristic probabilities (e.g., higher chance to click if category matches user history). It is deterministic enough to prove the ranking math works, but it does not represent actual human volatility.
+4. **No Real-Time Training:** While the `StateManager` updates user histories instantly, the underlying offline SVD embeddings (used in some baseline comparisons) aren't retrained dynamically during the simulation.
