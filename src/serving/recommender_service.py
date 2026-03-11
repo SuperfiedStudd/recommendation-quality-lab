@@ -35,17 +35,21 @@ class RecommenderService:
     }
 
     def __init__(self, master_df: pd.DataFrame, state_manager=None,
-                 strategy: str = "popularity"):
+                 strategy: str = "popularity", strategy_kwargs: dict = None,
+                 candidate_generation_kwargs: dict = None):
         """
         Args:
             master_df: The full prepared pipeline dataframe.
             state_manager: Optional StateManager instance for state lookups.
             strategy: Name of the ranking strategy. One of:
                       'popularity', 'freshness_boosted', 'diversity_aware'.
+            strategy_kwargs: Optional kwargs to pass to the ranking strategy.
+            candidate_generation_kwargs: Optional kwargs to pass to the candidate generator.
         """
-        self.candidate_gen = SessionCandidateGenerator(master_df)
+        self.candidate_gen = SessionCandidateGenerator(master_df, **(candidate_generation_kwargs or {}))
         self.state_manager = state_manager
         self.strategy_name = strategy
+        self.strategy_kwargs = strategy_kwargs or {}
 
         if strategy not in self.STRATEGY_MAP:
             raise ValueError(
@@ -75,7 +79,7 @@ class RecommenderService:
                                          "rank", "score", "strategy"])
 
         # 2. Rank candidates
-        ranked = self.rank_fn(pool)
+        ranked = self.rank_fn(pool, **self.strategy_kwargs)
 
         # 3. Return top-K
         top_k = ranked.head(k).copy()

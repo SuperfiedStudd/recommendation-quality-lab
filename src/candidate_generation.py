@@ -17,14 +17,21 @@ class SessionCandidateGenerator:
     items from historically engaged creators, and random exploration items.
     """
 
-    def __init__(self, master_df: pd.DataFrame):
+    def __init__(self, master_df: pd.DataFrame, 
+                 history_pool_ratio: float = 0.8,
+                 popular_pool_ratio: float = 0.5):
         """
         Args:
             master_df: The full prepared pipeline dataframe (loaded from pipeline_sample.csv).
                 Must contain session_id, user_id, time_ms, video_id, and features.
+            history_pool_ratio: Max proportion of candidate pool to fill with history-adjacent items.
+            popular_pool_ratio: Max proportion of candidate pool to fill with popular items.
         """
         # the dataframe needs to be sorted chronologically to safely subset past data
         self.df = master_df.sort_values("time_ms").copy()
+        
+        self.history_pool_ratio = history_pool_ratio
+        self.popular_pool_ratio = popular_pool_ratio
 
         # Cache item metadata that is static (doesn't leak future engagement)
         meta_cols = ["video_id", "author_id", "tag"]
@@ -93,7 +100,7 @@ class SessionCandidateGenerator:
                 pop_scores = recent_past.groupby("video_id").size()
                 top_popular = pop_scores.nlargest(candidates_needed).index.tolist()
                 for vid in top_popular:
-                    if vid not in observed_vids and len(synthetic_vids) < (candidates_needed * 0.5):
+                    if vid not in observed_vids and len(synthetic_vids) < (candidates_needed * self.popular_pool_ratio):
                         synthetic_vids.add(vid)
                         source_map[vid] = "popular"
 
@@ -117,7 +124,7 @@ class SessionCandidateGenerator:
                         if vid not in observed_vids and vid not in synthetic_vids:
                             synthetic_vids.add(vid)
                             source_map[vid] = "history"
-                            if len(synthetic_vids) >= (candidates_needed * 0.8):
+                            if len(synthetic_vids) >= (candidates_needed * self.history_pool_ratio):
                                 break
 
             # --- 3c. Source > Random Exploration ---

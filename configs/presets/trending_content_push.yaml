@@ -1,0 +1,6 @@
+simulation:
+  events: 20000
+  top_k: 20
+  eval_sessions: 100
+  history_pool_ratio: 0.2
+  popular_pool_ratio: 0.7

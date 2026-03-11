@@ -1,0 +1,5 @@
+name: "diversity_aware"
+strategy_kwargs:
+  top_n: 40
+  author_window: 2
+  tag_window: 3
