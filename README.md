@@ -8,7 +8,7 @@ Recommendation Strategy Lab
 
 ## 🔬 What This Is
 
-DiscoveryRank is a local **Recommendation Strategy Lab**. It allows Product Managers or ML Engineers to run fast, simulated A/B tests on recommendation algorithms. 
+A local **Recommendation Strategy Lab**. It allows Product Managers or ML Engineers to run fast, simulated A/B tests on recommendation algorithms. 
 
 By running a continuous online simulation loop, the lab captures the long-term impacts of ranking algorithms. It uses offline metrics like Click-Through Rate (proxy), Diversity, Novelty, and Serendipity to measure how algorithms physically reshape a user's catalog exposure over time. 
 
