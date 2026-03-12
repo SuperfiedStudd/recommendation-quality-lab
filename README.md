@@ -1,4 +1,4 @@
-# DiscoveryRank: Recommendation Strategy Lab
+Recommendation Strategy Lab
 
 > **Explore recommendation tradeoffs locally.** An end-to-end short-video recommendation system prototype wrapped in a plug-and-play experimentation lab. Test how ranking logic impacts user exposure over time without needing cloud infrastructure.
 
